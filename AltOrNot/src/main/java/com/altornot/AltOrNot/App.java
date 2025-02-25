@@ -5,7 +5,8 @@ public class App
     public static void main( String[] args )
     {
     	Summoner summoner = new Summoner();
+    	summoner.getInput();
 		
-		System.out.println(System.getenv("RIOT_API_KEY"));
+		System.out.println();
     }
 }
