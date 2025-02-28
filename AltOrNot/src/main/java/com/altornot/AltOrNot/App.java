@@ -6,7 +6,8 @@ public class App
     {
     	Summoner summoner = new Summoner();
     	summoner.getInput();
-		
-		System.out.println();
+		summoner.retrievePuuid();
+		summoner.retrieveFreeChamps();
+		summoner.retrieveTopChamps();
     }
 }

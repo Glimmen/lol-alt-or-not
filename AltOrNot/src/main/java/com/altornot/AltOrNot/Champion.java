@@ -1,10 +1,10 @@
 package com.altornot.AltOrNot;
 
 public class Champion {
-	int championId;
-	int championPoints;
+	int championId = -1;
+	int championPoints = -1;
 	
 	public Champion() {
 		
-	}
+	}             
 }

@@ -5,18 +5,23 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Scanner;
-import java.util.StringTokenizer;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 public class Summoner {
+	private final int MAX_TOP_CHAMPS = 10;
 	private String apiKey = System.getenv("RIOT_API_KEY");
 	private String gameName = null;
 	private String tagLine = null;
 	private String puuid = null;
-	private Champion[] topChamps = new Champion[10];
+	private Champion[] topChamps;
+	private int[] freeChampionIds;
+    private int[] freeChampionIdsForNewPlayers;
+    private int maxNewPlayerLevel;
 	
-	public void puuid() {
+	public void retrievePuuid() {
 		// Set up HTTP communication
 		HttpClient client = HttpClient.newHttpClient();
 		HttpRequest request = HttpRequest.newBuilder()
@@ -30,9 +35,10 @@ public class Summoner {
 			response = client.send(request, HttpResponse.BodyHandlers.ofString());
 			
 			// Parse JSON response using GSON
-			Summoner summoner = new Summoner();
-			summoner = Summoner.fromJson(response.body());
-			this.puuid = summoner.puuid;
+			Summoner temp = new Summoner();
+			Gson g = new Gson();
+			temp = g.fromJson(response.body(), Summoner.class);
+			this.puuid = temp.puuid;
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
@@ -40,10 +46,56 @@ public class Summoner {
 		}
 	}
 	
-	public static Summoner fromJson(String response) {
-		Gson g = new Gson();
-		return g.fromJson(response, Summoner.class);
+	public void retrieveTopChamps() {
+		// Set up HTTP communication
+		HttpClient client = HttpClient.newHttpClient();
+		HttpRequest request = HttpRequest.newBuilder()
+				.uri(URI.create("https://na1.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/" + this.puuid + "/top?count=" + MAX_TOP_CHAMPS))
+				.header("X-Riot-Token", apiKey)
+				.GET()
+				.build();
+		HttpResponse<String> response = null;
+		
+		try {
+			response = client.send(request, HttpResponse.BodyHandlers.ofString());
+			
+			// Parse JSON response using GSON
+			TypeToken<List<Champion>> typeToken =  new TypeToken<List<Champion>>() {};
+			List<Champion> temp = new Gson().fromJson(response.body(), typeToken.getType());
+			this.topChamps = temp.toArray(new Champion[0]);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
+	
+	public void retrieveFreeChamps() {
+    	// Set up HTTP communication
+		HttpClient client = HttpClient.newHttpClient();
+		HttpRequest request = HttpRequest.newBuilder()
+				.uri(URI.create("https://na1.api.riotgames.com/lol/platform/v3/champion-rotations"))
+				.header("X-Riot-Token", apiKey)
+				.GET()
+				.build();
+		HttpResponse<String> response = null;
+		
+		try {
+			response = client.send(request, HttpResponse.BodyHandlers.ofString());
+			
+			// Parse JSON response using GSON
+			Summoner temp = new Summoner();
+			Gson g = new Gson();
+			temp = g.fromJson(response.body(), Summoner.class);
+			this.freeChampionIds = temp.freeChampionIds;
+			this.freeChampionIdsForNewPlayers = temp.freeChampionIdsForNewPlayers;
+			this.maxNewPlayerLevel = temp.maxNewPlayerLevel;
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+    }
 	
 	public void getInput() {
     	Scanner scanner = new Scanner(System.in);
@@ -55,6 +107,8 @@ public class Summoner {
     		this.tagLine = scanner.nextLine();
     	} catch (InputMismatchException e) {
     		e.printStackTrace();
+    	} finally {
+    		scanner.close();
     	}
     }
 }
