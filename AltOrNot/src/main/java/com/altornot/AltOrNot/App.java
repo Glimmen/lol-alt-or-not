@@ -9,5 +9,8 @@ public class App
 		summoner.retrievePuuid();
 		summoner.retrieveFreeChamps();
 		summoner.retrieveTopChamps();
+		
+		
+		System.out.println();
     }
 }
